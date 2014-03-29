@@ -8,6 +8,8 @@ import plistlib
 import datetime
 import pytz
 
+__version__ = "0.0.1"
+
 TestMode = False
 VerboseMode = False
 
@@ -53,7 +55,3 @@ def main():
     else:
         info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
-
-if __name__ == '__main__':
-    main()
-
