@@ -10,6 +10,7 @@ from blessings import Terminal
 import language
 from setting import Setting
 from rule import Rule
+import processor
 
 term = Terminal()
 
@@ -33,8 +34,7 @@ def format_param(param):
     return term.yellow(param)
 
 def read_macro(line):
-    line = line.replace('\n', '')
-    info('line: ' + term.red(line))
+    line = line.replace('\n', '').replace('\r', '').strip()
     if len(line) < 3 or line[0] != '#' or line[-1] != '#':
         error('Invalid Macro Definition, Must Look Like: "# MACRO_NAME #": ' + format_param(line))
         sys.exit(6)
@@ -96,24 +96,25 @@ def load_project(path=None):
     else:
         verbose('Silp Setting Found: ' + format_path(project_path))
     #find proper language setting
-    extension = os.path.basename(project_path).replace('silp_', '').replace('.md', '')
+    extension = os.path.basename(project_path).replace('silp_', '.').replace('.md', '')
     project_language = None
     for lang in language.languages:
         if lang.extension == extension:
             project_language = lang
             break
     if not project_language:
-        error('Language Not Found: ' + format_param(extension))
+        error('Unsupported Language: ' + format_param(extension))
         sys.exit(4)
     else:
         verbose('Project Language: ' + format_param(project_language.name))
     return Setting(path, project_language, load_rules(project_path))
 
 def process_all(project):
-    verbose('Processing All Files')
-
-def process_one(project, path):
-    info('Processing File: ' + format_path(path))
+    files = [os.path.join(dirpath, f)
+            for dirpath, dirnames, files in os.walk(project.path)
+            for f in files if f.endswith(project.language.extension)]
+    for path in files:
+        processor.process_file(project, path)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -134,7 +135,7 @@ def main():
     elif args.file:
         project = load_project(os.path.dirname(args.file[0]))
         for path in args.file:
-            process_one(project, path)
+            processor.process_file(project, path)
     else:
         info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
