@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+import silp
+
+if __name__ == '__main__':
+    silp.main()
+
