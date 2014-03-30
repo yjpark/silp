@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import sys
 import argparse
@@ -7,29 +5,62 @@ import glob
 import plistlib
 import datetime
 import pytz
+from blessings import Terminal
 
-__version__ = "0.0.1"
+import setting
+import language
+import rule
 
-TestMode = False
-VerboseMode = False
+term = Terminal()
+
+test_mode = False
+verbose_mode = False
 
 def info(msg):
-    print msg
+    print term.normal + msg
 
-def info_line():
-    info('--------------------------------------------------------------------------------')
+def verbose(msg):
+    if verbose_mode:
+        info(msg)
+
+def error(msg):
+    print term.red + msg
+
+def format_path(path):
+    return term.blue(path)
 
 def load_project(path=None):
-    if path == None:
+    if path:
+        path = os.path.abspath(path)
+    else:
         path = os.getcwd()
-    info_line()
-    info('Loading Project Info: %s' % path)
+    verbose('Loading Project Info: ' + format_path(path))
+    project_path = None
+    while os.path.exists(path):
+        matches = glob.glob(os.path.join(path, 'silp_*.md'))
+        if len(matches) == 1:
+            project_path = matches[0]
+            break
+        elif len(matches) == 0:
+            path = os.path.dirname(path)
+        else:
+            error('Multiple Silp Setting Found: %s' % matches)
+            sys.exit(2)
+    if not project_path:
+        error('Silp Setting Not Found: ' + format_path(path))
+        sys.exit(3)
+    else:
+        verbose('Silp Setting Found: ' + format_path(project_path))
+    extension = project_path.replace('silp_', '').replace('.md', '')
+    project_language = None
+    for lang in language.languages:
+        pass
 
 def process_all():
-    info('Processing All Files')
+    verbose('Processing All Files')
 
 def process_one(path):
-    info('Processing File: %s' % path)
+    info('Processing File: ' + format_path(path))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -39,19 +70,18 @@ def main():
     parser.add_argument('file', nargs='*')
 
     args = parser.parse_args()
-
-    TestMode = args.test
-    VerboseMode = args.verbose
+    global test_mode
+    test_mode = args.test
+    global verbose_mode
+    verbose_mode = args.verbose
 
     if args.all:
         load_project()
         process_all()
-        info_line()
     elif args.file:
+        load_project(os.path.dirname(args.file[0]))
         for path in args.file:
-            load_project(path)
             process_one(path)
-        info_line()
     else:
         info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
