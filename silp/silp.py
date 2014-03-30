@@ -7,9 +7,9 @@ import datetime
 import pytz
 from blessings import Terminal
 
-import setting
 import language
-import rule
+from setting import Setting
+from rule import Rule
 
 term = Terminal()
 
@@ -29,12 +29,56 @@ def error(msg):
 def format_path(path):
     return term.blue(path)
 
+def format_param(param):
+    return term.yellow(param)
+
+def read_macro(line):
+    line = line.replace('\n', '')
+    info('line: ' + term.red(line))
+    if len(line) < 3 or line[0] != '#' or line[-1] != '#':
+        error('Invalid Macro Definition, Must Look Like: "# MACRO_NAME #": ' + format_param(line))
+        sys.exit(6)
+    else:
+        macro = line[1:-2]
+        return macro.strip()
+
+def is_template_tag(line):
+    return line.startswith('```')
+
+def load_rules(project_path):
+    lines = open(project_path).readlines()
+    rules = []
+    macro = None
+    template = None
+    for line in lines:
+        if macro is None:
+            if line.strip():
+                macro = read_macro(line)
+        elif is_template_tag(line):
+            if template is None:
+                template = []
+            else:
+                rules.append(Rule(macro, template))
+                macro = None
+                template = None
+        else:
+            template.append(line)
+    if not macro is None or not template is None:
+        error('Incomplete Rule: %s\n%s' % (macro, template))
+        sys.exit(5)
+    if verbose_mode:
+        verbose('Rules:')
+        for rule in rules:
+            verbose('    %s' % rule);
+    return rules
+
 def load_project(path=None):
     if path:
         path = os.path.abspath(path)
     else:
         path = os.getcwd()
     verbose('Loading Project Info: ' + format_path(path))
+    #get the project setting file's path
     project_path = None
     while os.path.exists(path):
         matches = glob.glob(os.path.join(path, 'silp_*.md'))
@@ -51,15 +95,24 @@ def load_project(path=None):
         sys.exit(3)
     else:
         verbose('Silp Setting Found: ' + format_path(project_path))
-    extension = project_path.replace('silp_', '').replace('.md', '')
+    #find proper language setting
+    extension = os.path.basename(project_path).replace('silp_', '').replace('.md', '')
     project_language = None
     for lang in language.languages:
-        pass
+        if lang.extension == extension:
+            project_language = lang
+            break
+    if not project_language:
+        error('Language Not Found: ' + format_param(extension))
+        sys.exit(4)
+    else:
+        verbose('Project Language: ' + format_param(project_language.name))
+    return Setting(path, project_language, load_rules(project_path))
 
-def process_all():
+def process_all(project):
     verbose('Processing All Files')
 
-def process_one(path):
+def process_one(project, path):
     info('Processing File: ' + format_path(path))
 
 def main():
@@ -76,12 +129,12 @@ def main():
     verbose_mode = args.verbose
 
     if args.all:
-        load_project()
-        process_all()
+        project = load_project()
+        process_all(project)
     elif args.file:
-        load_project(os.path.dirname(args.file[0]))
+        project = load_project(os.path.dirname(args.file[0]))
         for path in args.file:
-            process_one(path)
+            process_one(project, path)
     else:
         info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
