@@ -27,6 +27,9 @@ def verbose(msg):
 def error(msg):
     print term.red + msg
 
+def format_error(err):
+    return term.red(err)
+
 def format_path(path):
     return term.blue(path)
 
@@ -34,7 +37,7 @@ def format_param(param):
     return term.yellow(param)
 
 def read_macro(line):
-    line = line.replace('\n', '').replace('\r', '').strip()
+    line = line.replace('\n', '').strip()
     if len(line) < 3 or line[0] != '#' or line[-1] != '#':
         error('Invalid Macro Definition, Must Look Like: "# MACRO_NAME #": ' + format_param(line))
         sys.exit(6)
@@ -76,7 +79,7 @@ def load_project(path=None):
     if path:
         path = os.path.abspath(path)
     else:
-        path = os.getcwd()
+        path = os.path.abspath(os.getcwd())
     verbose('Loading Project Info: ' + format_path(path))
     #get the project setting file's path
     project_path = None
