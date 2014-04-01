@@ -61,7 +61,7 @@ def process_macro(project, line, relpath, line_number):
                 new_line = '%s%s' % (leading_space, new_line)
                 generated_lines.append(new_line)
 
-            columns = project.language.columns
+            columns = project.language.columns + 1 #the extra 1 is for \n
             for new_line in generated_lines:
                 columns = max(len(new_line) + len(project.language.generated_suffix), columns)
 
@@ -69,6 +69,6 @@ def process_macro(project, line, relpath, line_number):
                 new_line = new_line.replace('\n', '')
                 while len(new_line) + len(project.language.generated_suffix) < columns:
                     new_line = new_line + ' '
-                new_line = new_line + project.language.generated_suffix + '\n'
+                new_line = new_line + project.language.generated_suffix
                 result.append(new_line)
     return result
