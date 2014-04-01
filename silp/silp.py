@@ -114,7 +114,7 @@ def load_projects(path=None):
             error('Unsupported Language: ' + format_param(extension))
         else:
             verbose('Project Language: ' + format_param(project_language.name))
-            result.append(Setting(path, project_language, load_rules(project_path)))
+            result.append(Setting(os.path.dirname(project_path), project_language, load_rules(project_path)))
     return result
 
 def process_all(project):
