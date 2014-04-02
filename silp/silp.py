@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import sys
 import argparse
@@ -7,29 +5,128 @@ import glob
 import plistlib
 import datetime
 import pytz
+from blessings import Terminal
 
-__version__ = "0.0.1"
+import language
+from setting import Setting
+from rule import Rule
+import processor
 
-TestMode = False
-VerboseMode = False
+term = Terminal()
+
+test_mode = False
+verbose_mode = False
 
 def info(msg):
-    print msg
+    print term.normal + msg
 
-def info_line():
-    info('--------------------------------------------------------------------------------')
+def verbose(msg):
+    if verbose_mode:
+        info(msg)
 
-def load_project(path=None):
-    if path == None:
-        path = os.getcwd()
-    info_line()
-    info('Loading Project Info: %s' % path)
+def error(msg):
+    print term.red + msg
 
-def process_all():
-    info('Processing All Files')
+def format_error(err):
+    return term.red(err)
 
-def process_one(path):
-    info('Processing File: %s' % path)
+def format_path(path):
+    return term.blue(path)
+
+def format_param(param):
+    return term.yellow(param)
+
+def read_macro(line):
+    line = line.replace('\n', '').strip()
+    if len(line) < 3 or line[0] != '#' or line[-1] != '#':
+        error('Invalid Macro Definition, Must Look Like: "# MACRO_NAME #": ' + format_param(line))
+        sys.exit(6)
+    else:
+        macro = line[1:-2]
+        return macro.strip()
+
+def is_template_tag(line):
+    return line.startswith('```')
+
+def load_rules(project_path):
+    lines = open(project_path).readlines()
+    rules = []
+    macro = None
+    template = None
+    for line in lines:
+        if macro is None:
+            if line.strip():
+                macro = read_macro(line)
+        elif is_template_tag(line):
+            if template is None:
+                template = []
+            else:
+                rules.append(Rule(macro, template))
+                macro = None
+                template = None
+        else:
+            template.append(line)
+    if not macro is None or not template is None:
+        error('Incomplete Rule: %s\n%s' % (macro, template))
+        sys.exit(5)
+    if verbose_mode:
+        verbose('Rules:')
+        for rule in rules:
+            verbose('    %s' % rule);
+    return rules
+
+def get_project_pathes(path):
+    if path:
+        path = os.path.abspath(path)
+    else:
+        path = os.path.abspath(os.getcwd())
+    #get the project setting file's path
+    while os.path.exists(path):
+        matches = glob.glob(os.path.join(path, 'silp_*.md'))
+        if len(matches) == 0:
+            path = os.path.dirname(path)
+        else:
+            return matches
+    return None
+
+def load_projects(path=None):
+    if path:
+        path = os.path.abspath(path)
+    else:
+        path = os.path.abspath(os.getcwd())
+    verbose('Loading Project Info: ' + format_path(path))
+    project_pathes = get_project_pathes(path)
+    if not project_pathes:
+        error('Silp Setting Not Found: ' + format_path(path))
+        sys.exit(3)
+
+    #find proper language setting
+    result = []
+    for project_path in project_pathes:
+        verbose('Silp Setting Found: ' + format_path(project_path))
+        extension = os.path.basename(project_path).replace('silp_', '.').replace('.md', '')
+        project_language = None
+        for lang in language.languages:
+            if lang.extension == extension:
+                project_language = lang
+                break
+        if not project_language:
+            error('Unsupported Language: ' + format_param(extension))
+        else:
+            verbose('Project Language: ' + format_param(project_language.name))
+            result.append(Setting(os.path.dirname(project_path), project_language, load_rules(project_path)))
+    return result
+
+def process_all(project):
+    files = [os.path.join(dirpath, f)
+            for dirpath, dirnames, files in os.walk(project.path)
+            for f in files if f.endswith(project.language.extension)]
+    for path in files:
+        project_pathes = get_project_pathes(path)
+        if project_pathes and project.path == os.path.dirname(project_pathes[0]):
+            processor.process_file(project, path)
+        else:
+            verbose("Skiping: " + format_path(path))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -39,19 +136,20 @@ def main():
     parser.add_argument('file', nargs='*')
 
     args = parser.parse_args()
-
-    TestMode = args.test
-    VerboseMode = args.verbose
+    global test_mode
+    test_mode = args.test
+    global verbose_mode
+    verbose_mode = args.verbose
 
     if args.all:
-        load_project()
-        process_all()
-        info_line()
+        projects = load_projects()
+        for project in projects:
+            process_all(project)
     elif args.file:
+        projects = load_projects(os.path.dirname(args.file[0]))
         for path in args.file:
-            load_project(path)
-            process_one(path)
-        info_line()
+            for project in projects:
+                processor.process_file(project, path)
     else:
         info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
