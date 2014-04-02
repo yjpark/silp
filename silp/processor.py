@@ -17,12 +17,12 @@ def process_file(project, path):
     if '.silp_backup' in path or '.silp_test' in path:
         return
     using_silp = False
-    for line in open(input_path, 'r').readlines():
+    for line in open(path, 'r').readlines():
         if project.language.generated_suffix in line or project.language.macro_prefix in line:
             using_silp = True
             break
     if not using_silp:
-        silp.verbose('Skipping File That Not Using SILP: ' + slip.format_path(path))
+        silp.verbose('Skipping File That Not Using SILP: ' + path)
         return
 
     silp.info('Processing File: ' + silp.format_path(path))
