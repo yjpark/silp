@@ -1,7 +1,7 @@
 silp
 ====
 
-Simple In-Line Preprocessor
+Simple Individual Line Preprocessor
 
 
 Notes

@@ -36,7 +36,7 @@ setup(
     name='silp',
     version=silp.__version__,
     url='http://github.com/yjpark/silp/',
-    description='Simple In-Line Preprocessor',
+    description='Simple Individual Line Preprocessor',
     long_description=long_description,
     license='MIT License',
     author='YJ Park',
