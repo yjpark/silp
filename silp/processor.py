@@ -16,6 +16,15 @@ def prepare_dir(path):
 def process_file(project, path):
     if '.silp_backup' in path or '.silp_test' in path:
         return
+    using_silp = False
+    for line in open(path, 'r').readlines():
+        if project.language.generated_suffix in line or project.language.macro_prefix in line:
+            using_silp = True
+            break
+    if not using_silp:
+        silp.verbose('Skipping File That Not Using SILP: ' + path)
+        return
+
     silp.info('Processing File: ' + silp.format_path(path))
     relpath = path.replace(project.path + os.path.sep, '')
     if silp.test_mode:
@@ -52,14 +61,23 @@ def process_macro(project, line, relpath, line_number):
         macro, params = rule.parse_macro(m.group(2).strip())
         matched_rule = project.get_rule(macro, params, '%s:%s ' % (relpath, line_number))
         if matched_rule:
+            generated_lines = []
             for template_line in matched_rule.template:
-                new_line = template_line.replace('\n', '')
+                new_line = template_line
                 if matched_rule.params:
                     for i in range(len(matched_rule.params)):
                         new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
                 new_line = '%s%s' % (leading_space, new_line)
-                while len(new_line) + len(project.language.generated_suffix) < project.language.columns:
+                generated_lines.append(new_line)
+
+            columns = project.language.columns + 1 #the extra 1 is for \n
+            for new_line in generated_lines:
+                columns = max(len(new_line) + len(project.language.generated_suffix), columns)
+
+            for new_line in generated_lines:
+                new_line = new_line.replace('\n', '')
+                while len(new_line) + len(project.language.generated_suffix) < columns:
                     new_line = new_line + ' '
-                new_line = new_line + project.language.generated_suffix + '\n'
+                new_line = new_line + project.language.generated_suffix
                 result.append(new_line)
     return result

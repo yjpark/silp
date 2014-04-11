@@ -75,49 +75,58 @@ def load_rules(project_path):
             verbose('    %s' % rule);
     return rules
 
-def load_project(path=None):
+def get_project_pathes(path):
+    if path:
+        path = os.path.abspath(path)
+    else:
+        path = os.path.abspath(os.getcwd())
+    #get the project setting file's path
+    while os.path.exists(path):
+        matches = glob.glob(os.path.join(path, 'silp_*.md'))
+        if len(matches) == 0:
+            path = os.path.dirname(path)
+        else:
+            return matches
+    return None
+
+def load_projects(path=None):
     if path:
         path = os.path.abspath(path)
     else:
         path = os.path.abspath(os.getcwd())
     verbose('Loading Project Info: ' + format_path(path))
-    #get the project setting file's path
-    project_path = None
-    while os.path.exists(path):
-        matches = glob.glob(os.path.join(path, 'silp_*.md'))
-        if len(matches) == 1:
-            project_path = matches[0]
-            break
-        elif len(matches) == 0:
-            path = os.path.dirname(path)
-        else:
-            error('Multiple Silp Setting Found: %s' % matches)
-            sys.exit(2)
-    if not project_path:
+    project_pathes = get_project_pathes(path)
+    if not project_pathes:
         error('Silp Setting Not Found: ' + format_path(path))
         sys.exit(3)
-    else:
-        verbose('Silp Setting Found: ' + format_path(project_path))
+
     #find proper language setting
-    extension = os.path.basename(project_path).replace('silp_', '.').replace('.md', '')
-    project_language = None
-    for lang in language.languages:
-        if lang.extension == extension:
-            project_language = lang
-            break
-    if not project_language:
-        error('Unsupported Language: ' + format_param(extension))
-        sys.exit(4)
-    else:
-        verbose('Project Language: ' + format_param(project_language.name))
-    return Setting(path, project_language, load_rules(project_path))
+    result = []
+    for project_path in project_pathes:
+        verbose('Silp Setting Found: ' + format_path(project_path))
+        extension = os.path.basename(project_path).replace('silp_', '.').replace('.md', '')
+        project_language = None
+        for lang in language.languages:
+            if lang.extension == extension:
+                project_language = lang
+                break
+        if not project_language:
+            error('Unsupported Language: ' + format_param(extension))
+        else:
+            verbose('Project Language: ' + format_param(project_language.name))
+            result.append(Setting(os.path.dirname(project_path), project_language, load_rules(project_path)))
+    return result
 
 def process_all(project):
     files = [os.path.join(dirpath, f)
             for dirpath, dirnames, files in os.walk(project.path)
             for f in files if f.endswith(project.language.extension)]
     for path in files:
-        processor.process_file(project, path)
+        project_pathes = get_project_pathes(path)
+        if project_pathes and project.path == os.path.dirname(project_pathes[0]):
+            processor.process_file(project, path)
+        else:
+            verbose("Skiping: " + format_path(path))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -133,12 +142,14 @@ def main():
     verbose_mode = args.verbose
 
     if args.all:
-        project = load_project()
-        process_all(project)
+        projects = load_projects()
+        for project in projects:
+            process_all(project)
     elif args.file:
-        project = load_project(os.path.dirname(args.file[0]))
+        projects = load_projects(os.path.dirname(args.file[0]))
         for path in args.file:
-            processor.process_file(project, path)
+            for project in projects:
+                processor.process_file(project, path)
     else:
         info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
