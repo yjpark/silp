@@ -16,6 +16,7 @@ term = Terminal()
 
 test_mode = False
 verbose_mode = False
+clean_mode = False
 
 def info(msg):
     print term.normal + msg
@@ -38,15 +39,33 @@ def format_param(param):
 
 def read_macro(line):
     line = line.replace('\n', '').strip()
+
     if len(line) < 3 or line[0] != '#' or line[-1] != '#':
-        error('Invalid Macro Definition, Must Look Like: "# MACRO_NAME #": ' + format_param(line))
-        sys.exit(6)
+        return None
     else:
-        macro = line[1:-2]
+        macro = line[1:-1]
         return macro.strip()
 
 def is_template_tag(line):
     return line.startswith('```')
+
+def read_include_path(line):
+    line = line.replace('\n', '').strip()
+    if len(line) < 5 or line[0] != '<' or line[1] != '<' and line[2] != '[' or line[-1] != ']':
+        return None
+    else:
+        path = line[3:-1]
+        return path.strip()
+
+
+def include_in_template(template, project_path, include_path):
+    include_path = os.path.join(os.path.dirname(project_path), include_path)
+    if os.path.isfile(include_path):
+        lines = open(include_path).readlines()
+        for line in lines:
+            template.append(line)
+    else:
+        error('Include File Not Found: ' + format_path(include_path))
 
 def load_rules(project_path):
     lines = open(project_path).readlines()
@@ -64,8 +83,13 @@ def load_rules(project_path):
                 rules.append(Rule(macro, template))
                 macro = None
                 template = None
-        else:
-            template.append(line)
+        elif template is not None:
+            include_path = read_include_path(line)
+            if include_path:
+                include_in_template(template, project_path, include_path)
+            else:
+                template.append(line)
+
     if not macro is None or not template is None:
         error('Incomplete Rule: %s\n%s' % (macro, template))
         sys.exit(5)
@@ -133,6 +157,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-t', '--test', action='store_true', help='Test Only, Not Overriding Original Files')
     parser.add_argument('-a', '--all', action='store_true', help='Processing All Files in The Current Project')
+    parser.add_argument('-c', '--clean', action='store_true', help='Clean, Remove Lines Created By SILP')
     parser.add_argument('file', nargs='*')
 
     args = parser.parse_args()
@@ -140,6 +165,8 @@ def main():
     test_mode = args.test
     global verbose_mode
     verbose_mode = args.verbose
+    global clean_mode
+    clean_mode = args.clean
 
     if args.all:
         projects = load_projects()
