@@ -47,7 +47,7 @@ def process(project, input_path, output_path, relpath):
         line_number = line_number + 1
         if project.language.generated_suffix in line:
             pass
-        elif project.language.macro_prefix in line:
+        elif not silp.clean_mode and project.language.macro_prefix in line:
             output_lines.extend(process_macro(project, line, relpath, line_number))
         else:
             output_lines.append(line)
