@@ -6,7 +6,7 @@ import codecs
 import os
 import sys
 
-import silp
+__version__ = "0.2.3"
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -34,7 +34,7 @@ class PyTest(TestCommand):
 
 setup(
     name='silp',
-    version=silp.__version__,
+    version=__version__,
     url='http://github.com/yjpark/silp/',
     description='Simple Individual Line Preprocessor',
     long_description=long_description,
