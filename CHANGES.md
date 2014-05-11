@@ -1,3 +1,10 @@
+0.2.4
+-----
+Fix the wrong `import silp` in setup.py which breaks the dependencies installation.
+
+- https://github.com/yjpark/silp/issues/1
+- Thanks for lowks for the comment: https://github.com/lowks
+
 0.2.3
 -----
 
