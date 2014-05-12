@@ -1,7 +1,9 @@
 import silp
 
+
 class Language:
-    def __init__(self, name, extension, macro_prefix, generated_suffix, columns):
+    def __init__(self, name, extension, macro_prefix,
+                 generated_suffix, columns):
         self.name = name
         self.extension = extension
         self.macro_prefix = macro_prefix
