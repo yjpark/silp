@@ -18,24 +18,31 @@ test_mode = False
 verbose_mode = False
 clean_mode = False
 
+
 def info(msg):
     print term.normal + msg
+
 
 def verbose(msg):
     if verbose_mode:
         info(msg)
 
+
 def error(msg):
     print term.red + msg
+
 
 def format_error(err):
     return term.red(err)
 
+
 def format_path(path):
     return term.blue(path)
 
+
 def format_param(param):
     return term.yellow(param)
+
 
 def read_macro(line):
     line = line.replace('\n', '').strip()
@@ -46,8 +53,10 @@ def read_macro(line):
         macro = line[1:-1]
         return macro.strip()
 
+
 def is_template_tag(line):
     return line.startswith('```')
+
 
 def read_include_path(line):
     line = line.replace('\n', '').strip()
@@ -66,6 +75,7 @@ def include_in_template(template, project_path, include_path):
             template.append(line)
     else:
         error('Include File Not Found: ' + format_path(include_path))
+
 
 def load_rules(project_path):
     lines = open(project_path).readlines()
@@ -96,15 +106,16 @@ def load_rules(project_path):
     if verbose_mode:
         verbose('Rules:')
         for rule in rules:
-            verbose('    %s' % rule);
+            verbose('    %s' % rule)
     return rules
+
 
 def get_project_pathes(path):
     if path:
         path = os.path.abspath(path)
     else:
         path = os.path.abspath(os.getcwd())
-    #get the project setting file's path
+    # get the project setting file's path
     while os.path.exists(path):
         matches = glob.glob(os.path.join(path, 'silp_*.md'))
         if len(matches) == 0:
@@ -112,6 +123,7 @@ def get_project_pathes(path):
         else:
             return matches
     return None
+
 
 def load_projects(path=None):
     if path:
@@ -124,11 +136,12 @@ def load_projects(path=None):
         error('Silp Setting Not Found: ' + format_path(path))
         sys.exit(3)
 
-    #find proper language setting
+    # find proper language setting
     result = []
     for project_path in project_pathes:
         verbose('Silp Setting Found: ' + format_path(project_path))
-        extension = os.path.basename(project_path).replace('silp_', '.').replace('.md', '')
+        extension = os.path.basename(
+            project_path).replace('silp_', '.').replace('.md', '')
         project_language = None
         for lang in language.languages:
             if lang.extension == extension:
@@ -138,13 +151,16 @@ def load_projects(path=None):
             error('Unsupported Language: ' + format_param(extension))
         else:
             verbose('Project Language: ' + format_param(project_language.name))
-            result.append(Setting(os.path.dirname(project_path), project_language, load_rules(project_path)))
+            result.append(Setting(os.path.dirname(project_path),
+                                  project_language,
+                                  load_rules(project_path)))
     return result
+
 
 def process_all(project):
     files = [os.path.join(dirpath, f)
-            for dirpath, dirnames, files in os.walk(project.path)
-            for f in files if f.endswith(project.language.extension)]
+             for dirpath, dirnames, files in os.walk(project.path)
+             for f in files if f.endswith(project.language.extension)]
     for path in files:
         project_pathes = get_project_pathes(path)
         if project_pathes and project.path == os.path.dirname(project_pathes[0]):
@@ -152,12 +168,16 @@ def process_all(project):
         else:
             verbose("Skiping: " + format_path(path))
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-t', '--test', action='store_true', help='Test Only, Not Overriding Original Files')
-    parser.add_argument('-a', '--all', action='store_true', help='Processing All Files in The Current Project')
-    parser.add_argument('-c', '--clean', action='store_true', help='Clean, Remove Lines Created By SILP')
+    parser.add_argument('-t', '--test', action='store_true',
+                        help='Test Only, Not Overriding Original Files')
+    parser.add_argument('-a', '--all', action='store_true',
+                        help='Processing All Files in The Current Project')
+    parser.add_argument('-c', '--clean', action='store_true',
+                        help='Clean, Remove Lines Created By SILP')
     parser.add_argument('file', nargs='*')
 
     args = parser.parse_args()
