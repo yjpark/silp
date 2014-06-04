@@ -43,6 +43,7 @@ setup(
     author_email='yjpark@gmail.com',
     tests_require=['pytest'],
     install_requires=[
+        'pytz',
         'blessings>=1.5.1',
         ],
     cmdclass={'test': PyTest},
