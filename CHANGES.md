@@ -1,3 +1,7 @@
+0.2.5
+-----
+Add support for YML launguage
+
 0.2.4
 -----
 Fix the wrong `import silp` in setup.py which breaks the dependencies installation.
