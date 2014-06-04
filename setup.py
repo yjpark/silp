@@ -6,7 +6,7 @@ import codecs
 import os
 import sys
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -43,6 +43,7 @@ setup(
     author_email='yjpark@gmail.com',
     tests_require=['pytest'],
     install_requires=[
+        'pytz',
         'blessings>=1.5.1',
         ],
     cmdclass={'test': PyTest},
