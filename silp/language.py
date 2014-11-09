@@ -16,4 +16,5 @@ languages = [
     Language('Go', '.go', '//SILP:', '//__SILP__\n', 80),
     Language('Freshrc', '.freshrc', '#SILP:', '#__SILP__\n', 80),
     Language('YML', '.yml', '#SILP:', '#__SILP__\n', 80),
+    Language('Swift', '.swift', '//SILP:', '//__SILP__\n', 80),
 ]
