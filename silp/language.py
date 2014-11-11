@@ -17,4 +17,6 @@ languages = [
     Language('Freshrc', '.freshrc', '#SILP:', '#__SILP__\n', 80),
     Language('YML', '.yml', '#SILP:', '#__SILP__\n', 80),
     Language('Swift', '.swift', '//SILP:', '//__SILP__\n', 80),
+    Language('Objective-C', '.m', '//SILP:', '//__SILP__\n', 80),
+    Language('Objective-C++', '.mm', '//SILP:', '//__SILP__\n', 80),
 ]
