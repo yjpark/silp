@@ -19,4 +19,6 @@ languages = [
     Language('Swift', '.swift', '//SILP:', '//__SILP__\n', 80),
     Language('Objective-C', '.m', '//SILP:', '//__SILP__\n', 80),
     Language('Objective-C++', '.mm', '//SILP:', '//__SILP__\n', 80),
+    Language('Moonscript', '.moon', '--SILP:', '--__SILP__\n', 80),
+    Language('Lua', '.lua', '--SILP:', '--__SILP__\n', 80),
 ]
