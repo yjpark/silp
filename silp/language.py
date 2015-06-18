@@ -21,4 +21,6 @@ languages = [
     Language('Objective-C++', '.mm', '//SILP:', '//__SILP__\n', 80),
     Language('Moonscript', '.moon', '--SILP:', '--__SILP__\n', 80),
     Language('Lua', '.lua', '--SILP:', '--__SILP__\n', 80),
+    Language('Erlang', '.erl', '%%SILP:', '%%__SILP__\n', 80),
+    Language('Erlang Include', '.hrl', '%%SILP:', '%%__SILP__\n', 80),
 ]

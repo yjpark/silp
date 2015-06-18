@@ -4,7 +4,9 @@ import sys
 import shutil
 import silp
 import rule
+import imp
 
+loaded_plugin_modules = {}
 
 def prepare_dir(path):
     dirpath = os.path.dirname(path)
@@ -58,6 +60,50 @@ def process(project, input_path, output_path, relpath):
             output_lines.append(line)
     open(output_path, 'w').writelines(output_lines)
 
+def generate_lines_rule(matched_rule, params):
+    generated_lines = []
+    for template_line in matched_rule.template:
+        new_line = template_line
+        if matched_rule.params:
+            for i in range(len(matched_rule.params)):
+                new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
+        generated_lines.append(new_line)
+    return generated_lines
+
+def load_from_file(filepath):
+    class_inst = None
+    expected_class = 'MyClass'
+
+    mod_name,file_ext = os.path.splitext(os.path.split(filepath)[-1])
+
+    if file_ext.lower() == '.py':
+        py_mod = imp.load_source(mod_name, filepath)
+
+    elif file_ext.lower() == '.pyc':
+        py_mod = imp.load_compiled(mod_name, filepath)
+
+    if hasattr(py_mod, expected_class):
+        class_inst = getattr(py_mod, expected_class)()
+
+    return class_inst
+
+def generate_lines_plugin(module, func, params):
+    try:
+        global loaded_plugin_modules
+        module_lib = loaded_plugin_modules.get(module)
+        if module_lib is None:
+            silp.verbose('Loading plugin macro: %s %s' % (module, func))
+            module_find = imp.find_module(module, [os.path.join(project.path, '.silp_plugins')])
+            module_lib = imp.load_module(module, m[0], m[1], m[2])
+            loaded_plugin_modules[module] = module_lib
+        silp.verbose('Calling plugin macro: %s:%s(%s)' % (module, func, params))
+        if params:
+            return module_lib.getattr(func)(*params)
+        else:
+            return module_lib.getattr(func)()
+    except Exception as e:
+        silp.error('Load plugin failed: %s:%s -> %s' % (module, func, e))
+        return None
 
 def process_macro(project, line, relpath, line_number):
     result = [line]
@@ -65,26 +111,30 @@ def process_macro(project, line, relpath, line_number):
                  line.replace(project.language.macro_prefix, '__SILP__'))
     if m:
         leading_space = m.group(1)
-        macro, params = rule.parse_macro(m.group(2).strip())
-        matched_rule = project.get_rule(macro, params,
-                                        '%s:%s ' % (relpath, line_number))
-        if matched_rule:
-            generated_lines = []
-            for template_line in matched_rule.template:
-                new_line = template_line
-                if matched_rule.params:
-                    for i in range(len(matched_rule.params)):
-                        new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
-                new_line = '%s%s' % (leading_space, new_line)
-                generated_lines.append(new_line)
+        line = m.group(2).strip()
+        generated_lines = None
 
+        if rule.is_plugin_macro(line):
+            module, func, params = rule.parse_plugin_macro(line)
+            if module and func:
+                enerated_lines = generate_lines_plugin(module, func, params)
+        else:
+            macro, params = rule.parse_macro(line)
+            if macro:
+                matched_rule = project.get_rule(macro, params,
+                                                '%s:%s ' % (relpath, line_number))
+                if matched_rule:
+                    generated_lines = generate_lines_rule(matched_rule, params)
+
+        if generated_lines:
             columns = project.language.columns + 1  # the extra 1 is for \n
             for new_line in generated_lines:
-                columns = max(len(new_line) +
+                columns = max(len(leading_space) + len(new_line) +
                               len(project.language.generated_suffix),
                               columns)
 
             for new_line in generated_lines:
+                new_line = '%s%s' % (leading_space, new_line)
                 new_line = new_line.replace('\n', '')
                 while len(new_line) + len(project.language.generated_suffix) < columns:
                     new_line = new_line + ' '
