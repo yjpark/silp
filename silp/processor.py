@@ -5,6 +5,7 @@ import shutil
 import silp
 import rule
 import imp
+import traceback
 
 loaded_plugin_modules = {}
 
@@ -70,39 +71,26 @@ def generate_lines_rule(matched_rule, params):
         generated_lines.append(new_line)
     return generated_lines
 
-def load_from_file(filepath):
-    class_inst = None
-    expected_class = 'MyClass'
-
-    mod_name,file_ext = os.path.splitext(os.path.split(filepath)[-1])
-
-    if file_ext.lower() == '.py':
-        py_mod = imp.load_source(mod_name, filepath)
-
-    elif file_ext.lower() == '.pyc':
-        py_mod = imp.load_compiled(mod_name, filepath)
-
-    if hasattr(py_mod, expected_class):
-        class_inst = getattr(py_mod, expected_class)()
-
-    return class_inst
-
-def generate_lines_plugin(module, func, params):
+def generate_lines_plugin(project, module, func, params):
     try:
         global loaded_plugin_modules
         module_lib = loaded_plugin_modules.get(module)
         if module_lib is None:
             silp.verbose('Loading plugin macro: %s %s' % (module, func))
-            module_find = imp.find_module(module, [os.path.join(project.path, 'silp_plugins')])
+            m = imp.find_module(module, [os.path.join(project.path, 'silp_plugins')])
             module_lib = imp.load_module(module, m[0], m[1], m[2])
             loaded_plugin_modules[module] = module_lib
         silp.verbose('Calling plugin macro: %s:%s(%s)' % (module, func, params))
+        lines = None
         if params:
-            return module_lib.getattr(func)(*params)
+            lines = getattr(module_lib, func)(*[p.name for p in params])
         else:
-            return module_lib.getattr(func)()
+            lines = getattr(module_lib, func)()
+        #for line in lines: silp.verbose(line)
+        return lines
     except Exception as e:
         silp.error('Load plugin failed: %s:%s -> %s' % (module, func, e))
+        silp.error(traceback.format_exc())
         return None
 
 def process_macro(project, line, relpath, line_number):
@@ -117,7 +105,7 @@ def process_macro(project, line, relpath, line_number):
         if rule.is_plugin_macro(line):
             module, func, params = rule.parse_plugin_macro(line)
             if module and func:
-                enerated_lines = generate_lines_plugin(module, func, params)
+                generated_lines = generate_lines_plugin(project, module, func, params)
         else:
             macro, params = rule.parse_macro(line)
             if macro:
