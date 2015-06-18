@@ -6,7 +6,7 @@ import codecs
 import os
 import sys
 
-__version__ = "0.2.5"
+__version__ = "0.3.1"
 
 here = os.path.abspath(os.path.dirname(__file__))
 

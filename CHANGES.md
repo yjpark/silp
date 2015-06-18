@@ -1,3 +1,17 @@
+0.3.1
+-----
+Add simple plugin support for more complex macro.
+
+- Currently plugins should be put under project's silp_plugins
+    (Project means the folder holding silp_xx.md)
+- plugin macro has format as module:func(param1, param2, ...)
+    module here is the name of the python plugin, func is the name of
+    function
+- also expose silp.error/info/verbose, then the plugin codes can print
+    debug information with them.
+
+Add support for Erlang (both erl, and hrl)
+
 0.2.5
 -----
 Add support for YML launguage
