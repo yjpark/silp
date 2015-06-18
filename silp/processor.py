@@ -93,7 +93,7 @@ def generate_lines_plugin(module, func, params):
         module_lib = loaded_plugin_modules.get(module)
         if module_lib is None:
             silp.verbose('Loading plugin macro: %s %s' % (module, func))
-            module_find = imp.find_module(module, [os.path.join(project.path, '.silp_plugins')])
+            module_find = imp.find_module(module, [os.path.join(project.path, 'silp_plugins')])
             module_lib = imp.load_module(module, m[0], m[1], m[2])
             loaded_plugin_modules[module] = module_lib
         silp.verbose('Calling plugin macro: %s:%s(%s)' % (module, func, params))
