@@ -1,3 +1,7 @@
+0.3.2
+-----
+Use "%" instead of "%%" in erlang language
+
 0.3.1
 -----
 Add simple plugin support for more complex macro.
