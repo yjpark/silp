@@ -1,3 +1,8 @@
+0.3.4
+-----
+Make sure there is at least one space before the suffix
+use " --SILP:" for sql
+
 0.3.3
 -----
 Add SQL to language list
