@@ -1,3 +1,12 @@
+0.3.3
+-----
+Add SQL to language list
+
+- Use "/*__SILP__*/" for the generated tag, since in MySql if using
+  "--__SILP__", then if there is one line without space there is a 
+  corner case that there is no space before it.
+  https://dev.mysql.com/doc/refman/5.1/en/ansi-diff-comments.html
+
 0.3.2
 -----
 Use "%" instead of "%%" in erlang language

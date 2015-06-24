@@ -23,4 +23,5 @@ languages = [
     Language('Lua', '.lua', '--SILP:', '--__SILP__\n', 80),
     Language('Erlang', '.erl', '%SILP:', '%__SILP__\n', 80),
     Language('Erlang Include', '.hrl', '%SILP:', '%__SILP__\n', 80),
+    Language('SQL', '.sql', '--SILP:', '/*__SILP__*/\n', 80),
 ]
