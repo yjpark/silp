@@ -117,7 +117,7 @@ def process_macro(project, line, relpath, line_number):
         if generated_lines:
             columns = project.language.columns + 1  # the extra 1 is for \n
             for new_line in generated_lines:
-                columns = max(len(leading_space) + len(new_line) +
+                columns = max(len(leading_space) + len(new_line) + 1 +
                               len(project.language.generated_suffix),
                               columns)
 
