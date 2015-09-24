@@ -1,3 +1,7 @@
+0.3.5
+-----
+Put the `.silp_backup` and `.silp_test` folders under `~`, otherwise they may became garbage in project folder
+
 0.3.4
 -----
 Make sure there is at least one space before the suffix

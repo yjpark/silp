@@ -17,6 +17,8 @@ def prepare_dir(path):
         silp.error('Can not create dir at: ' + silp.format_path(dirpath))
         sys.exit(10)
 
+def get_temp_path(project_path, temp_path, relpath):
+    return os.path.join(os.path.expanduser('~'), temp_path, project_path.replace(os.path.sep, '_'), relpath)
 
 def process_file(project, path):
     if '.silp_backup' in path or '.silp_test' in path:
@@ -31,13 +33,13 @@ def process_file(project, path):
         return
 
     silp.info('Processing File: ' + silp.format_path(path))
-    relpath = path.replace(project.path + os.path.sep, '')
+    relpath = os.path.relpath(path, project.path)
     if silp.test_mode:
         input_path = path
-        output_path = os.path.join(project.path, '.silp_test', relpath)
+        output_path = get_temp_path(project.path, '.silp_test', relpath)
         prepare_dir(output_path)
     else:
-        input_path = os.path.join(project.path, '.silp_backup', relpath)
+        input_path = get_temp_path(project.path, '.silp_backup', relpath)
         prepare_dir(input_path)
         shutil.copy2(path, input_path)
         output_path = path
