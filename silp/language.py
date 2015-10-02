@@ -1,4 +1,5 @@
 import silp
+import term
 
 
 class Language:

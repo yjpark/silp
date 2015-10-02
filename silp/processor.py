@@ -2,10 +2,12 @@ import os
 import re
 import sys
 import shutil
-import silp
-import rule
-import imp
 import traceback
+import imp
+
+import silp
+import term
+import rule
 
 loaded_plugin_modules = {}
 
@@ -14,7 +16,7 @@ def prepare_dir(path):
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
     if not os.path.isdir(dirpath):
-        silp.error('Can not create dir at: ' + silp.format_path(dirpath))
+        term.error('Can not create dir at: ' + term.format_path(dirpath))
         sys.exit(10)
 
 def get_temp_path(project_path, temp_path, relpath):
@@ -29,10 +31,10 @@ def process_file(project, path):
             using_silp = True
             break
     if not using_silp:
-        silp.verbose('Skipping File That Not Using SILP: ' + path)
+        term.verbose('Skipping File That Not Using SILP: ' + path)
         return
 
-    silp.info('Processing File: ' + silp.format_path(path))
+    term.info('Processing File: ' + term.format_path(path))
     relpath = os.path.relpath(path, project.path)
     if silp.test_mode:
         input_path = path
@@ -47,9 +49,9 @@ def process_file(project, path):
 
 
 def process(project, input_path, output_path, relpath):
-    silp.verbose('Processing: ' +
-                 silp.format_path(input_path) + ' -> ' +
-                 silp.format_path(output_path))
+    term.verbose('Processing: ' +
+                 term.format_path(input_path) + ' -> ' +
+                 term.format_path(output_path))
     output_lines = []
 
     line_number = 0
@@ -78,21 +80,21 @@ def generate_lines_plugin(project, module, func, params):
         global loaded_plugin_modules
         module_lib = loaded_plugin_modules.get(module)
         if module_lib is None:
-            silp.verbose('Loading plugin macro: %s %s' % (module, func))
+            term.verbose('Loading plugin macro: %s %s' % (module, func))
             m = imp.find_module(module, [os.path.join(project.path, 'silp_plugins')])
             module_lib = imp.load_module(module, m[0], m[1], m[2])
             loaded_plugin_modules[module] = module_lib
-        silp.verbose('Calling plugin macro: %s:%s(%s)' % (module, func, params))
+        term.verbose('Calling plugin macro: %s:%s(%s)' % (module, func, params))
         lines = None
         if params:
             lines = getattr(module_lib, func)(*[p.name for p in params])
         else:
             lines = getattr(module_lib, func)()
-        #for line in lines: silp.verbose(line)
+        #for line in lines: term.verbose(line)
         return lines
     except Exception as e:
-        silp.error('Load plugin failed: %s:%s -> %s' % (module, func, e))
-        silp.error(traceback.format_exc())
+        term.error('Load plugin failed: %s:%s -> %s' % (module, func, e))
+        term.error(traceback.format_exc())
         return None
 
 def process_macro(project, line, relpath, line_number):
