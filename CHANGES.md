@@ -1,3 +1,8 @@
+0.3.6
+-----
+Remove blessings usage under windows, can work under windows now (only test with git windows' bash)
+
+
 0.3.5
 -----
 Put the `.silp_backup` and `.silp_test` folders under `~`, otherwise they may became garbage in project folder
