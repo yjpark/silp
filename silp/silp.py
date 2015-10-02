@@ -5,43 +5,15 @@ import glob
 import plistlib
 import datetime
 import pytz
-from blessings import Terminal
 
 import language
 from setting import Setting
 from rule import Rule
 import processor
-
-term = Terminal()
+import term
 
 test_mode = False
-verbose_mode = False
 clean_mode = False
-
-
-def info(msg):
-    print term.normal + msg
-
-
-def verbose(msg):
-    if verbose_mode:
-        info(msg)
-
-
-def error(msg):
-    print term.red + msg
-
-
-def format_error(err):
-    return term.red(err)
-
-
-def format_path(path):
-    return term.blue(path)
-
-
-def format_param(param):
-    return term.yellow(param)
 
 
 def read_macro(line):
@@ -74,7 +46,7 @@ def include_in_template(template, project_path, include_path):
         for line in lines:
             template.append(line)
     else:
-        error('Include File Not Found: ' + format_path(include_path))
+        term.error('Include File Not Found: ' + term.format_path(include_path))
 
 
 def load_rules(project_path):
@@ -101,12 +73,11 @@ def load_rules(project_path):
                 template.append(line)
 
     if not macro is None or not template is None:
-        error('Incomplete Rule: %s\n%s' % (macro, template))
+        term.error('Incomplete Rule: %s\n%s' % (macro, template))
         sys.exit(5)
-    if verbose_mode:
-        verbose('Rules:')
-        for rule in rules:
-            verbose('    %s' % rule)
+    term.verbose('Rules:')
+    for rule in rules:
+        term.verbose('    %s' % rule)
     return rules
 
 
@@ -130,16 +101,16 @@ def load_projects(path=None):
         path = os.path.abspath(path)
     else:
         path = os.path.abspath(os.getcwd())
-    verbose('Loading Project Info: ' + format_path(path))
+    term.verbose('Loading Project Info: ' + term.format_path(path))
     project_pathes = get_project_pathes(path)
     if not project_pathes:
-        error('Silp Setting Not Found: ' + format_path(path))
+        term.error('Silp Setting Not Found: ' + term.format_path(path))
         sys.exit(3)
 
     # find proper language setting
     result = []
     for project_path in project_pathes:
-        verbose('Silp Setting Found: ' + format_path(project_path))
+        term.verbose('Silp Setting Found: ' + term.format_path(project_path))
         extension = os.path.basename(
             project_path).replace('silp_', '.').replace('.md', '')
         project_language = None
@@ -148,9 +119,9 @@ def load_projects(path=None):
                 project_language = lang
                 break
         if not project_language:
-            error('Unsupported Language: ' + format_param(extension))
+            term.error('Unsupported Language: ' + term.format_param(extension))
         else:
-            verbose('Project Language: ' + format_param(project_language.name))
+            term.verbose('Project Language: ' + term.format_param(project_language.name))
             result.append(Setting(os.path.dirname(project_path),
                                   project_language,
                                   load_rules(project_path)))
@@ -166,7 +137,7 @@ def process_all(project):
         if project_pathes and project.path == os.path.dirname(project_pathes[0]):
             processor.process_file(project, path)
         else:
-            verbose("Skiping: " + format_path(path))
+            term.verbose("Skiping: " + term.format_path(path))
 
 
 def main():
@@ -181,10 +152,10 @@ def main():
     parser.add_argument('file', nargs='*')
 
     args = parser.parse_args()
+    term.set_verbose_mode(args.verbose)
+
     global test_mode
     test_mode = args.test
-    global verbose_mode
-    verbose_mode = args.verbose
     global clean_mode
     clean_mode = args.clean
 
@@ -198,5 +169,5 @@ def main():
             for project in projects:
                 processor.process_file(project, path)
     else:
-        info('Please provide the files to process, or use "--all" to process all files')
+        term.info('Please provide the files to process, or use "--all" to process all files')
         sys.exit(1)
