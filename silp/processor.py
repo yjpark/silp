@@ -75,15 +75,28 @@ def generate_lines_rule(matched_rule, params):
         generated_lines.append(new_line)
     return generated_lines
 
+def get_module_lib_in_folder(module, folder):
+    global loaded_plugin_modules
+    term.verbose('Try loading plugin macro in %s: %s' % (folder, module))
+    m = imp.find_module(module, [folder])
+    if m:
+        module_lib = imp.load_module(module, m[0], m[1], m[2])
+        loaded_plugin_modules[module] = module_lib
+        return module_lib
+    return None
+
+def get_module_lib(module, project_path):
+    global loaded_plugin_modules
+    module_lib = loaded_plugin_modules.get(module)
+    if module_lib is None:
+        module_lib = get_module_lib_in_folder(module, os.path.join(project_path, 'silp_plugins'))
+    if module_lib is None:
+        module_lib = get_module_lib_in_folder(module, os.path.join('~', '.silp_plugins'))
+    return module_lib
+
 def generate_lines_plugin(project, module, func, params):
     try:
-        global loaded_plugin_modules
-        module_lib = loaded_plugin_modules.get(module)
-        if module_lib is None:
-            term.verbose('Loading plugin macro: %s %s' % (module, func))
-            m = imp.find_module(module, [os.path.join(project.path, 'silp_plugins')])
-            module_lib = imp.load_module(module, m[0], m[1], m[2])
-            loaded_plugin_modules[module] = module_lib
+        module_lib = get_module_lib(module, project.path)
         term.verbose('Calling plugin macro: %s:%s(%s)' % (module, func, params))
         lines = None
         if params:
