@@ -76,13 +76,18 @@ def generate_lines_rule(matched_rule, params):
     return generated_lines
 
 def get_module_lib_in_folder(module, folder):
-    global loaded_plugin_modules
-    term.verbose('Try loading plugin macro in %s: %s' % (folder, module))
-    m = imp.find_module(module, [folder])
-    if m:
-        module_lib = imp.load_module(module, m[0], m[1], m[2])
-        loaded_plugin_modules[module] = module_lib
-        return module_lib
+    try:
+        global loaded_plugin_modules
+        term.verbose('Try loading plugin macro in %s: %s' % (folder, module))
+        m = imp.find_module(module, [folder])
+        if m:
+            module_lib = imp.load_module(module, m[0], m[1], m[2])
+            loaded_plugin_modules[module] = module_lib
+            return module_lib
+    except Exception as e:
+        term.verbose('Load plugin failed: %s -> %s' % (module, e))
+        term.verbose(traceback.format_exc())
+        return None
     return None
 
 def get_module_lib(module, project_path):
@@ -91,7 +96,7 @@ def get_module_lib(module, project_path):
     if module_lib is None:
         module_lib = get_module_lib_in_folder(module, os.path.join(project_path, 'silp_plugins'))
     if module_lib is None:
-        module_lib = get_module_lib_in_folder(module, os.path.join('~', '.silp_plugins'))
+        module_lib = get_module_lib_in_folder(module, os.path.expanduser('~/.silp_plugins'))
     return module_lib
 
 def generate_lines_plugin(project, module, func, params):

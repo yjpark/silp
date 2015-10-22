@@ -1,3 +1,8 @@
+0.3.8
+-----
+Bugfix load module from ~/.silp_plugins
+Add csproj file
+
 0.3.7
 -----
 Try load module from ~/.silp_plugins
