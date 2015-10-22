@@ -1,3 +1,7 @@
+0.3.7
+-----
+Try load module from ~/.silp_plugins
+
 0.3.6
 -----
 Remove blessings usage under windows, can work under windows now (only test with git windows' bash)
