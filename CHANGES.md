@@ -1,3 +1,7 @@
+0.3.9
+-----
+Bugfix with term refactoring
+
 0.3.8
 -----
 Bugfix load module from ~/.silp_plugins
