@@ -1,3 +1,7 @@
+0.3.11
+------
+Bugfix with nested rules' param values
+
 0.3.10
 ------
 Support nested rules inside template.

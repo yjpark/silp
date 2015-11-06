@@ -71,12 +71,12 @@ def generate_lines_rule(project, matched_rule, params):
     for template_line in matched_rule.template:
         line_number = line_number + 1
         new_line = template_line
+        if matched_rule.params:
+            for i in range(len(matched_rule.params)):
+                new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
         if project.language.macro_prefix in new_line:
             generated_lines.extend(process_macro(project, new_line, matched_rule.macro, line_number, nested=True))
         else:
-            if matched_rule.params:
-                for i in range(len(matched_rule.params)):
-                    new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
             generated_lines.append(new_line)
     return generated_lines
 
