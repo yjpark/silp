@@ -65,14 +65,19 @@ def process(project, input_path, output_path, relpath):
             output_lines.append(line)
     open(output_path, 'w').writelines(output_lines)
 
-def generate_lines_rule(matched_rule, params):
+def generate_lines_rule(project, matched_rule, params):
     generated_lines = []
+    line_number = 0
     for template_line in matched_rule.template:
+        line_number = line_number + 1
         new_line = template_line
-        if matched_rule.params:
-            for i in range(len(matched_rule.params)):
-                new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
-        generated_lines.append(new_line)
+        if project.language.macro_prefix in new_line:
+            generated_lines.extend(process_macro(project, new_line, matched_rule.macro, line_number, nested=True))
+        else:
+            if matched_rule.params:
+                for i in range(len(matched_rule.params)):
+                    new_line = new_line.replace('${%s}' % matched_rule.params[i].name, params[i].name)
+            generated_lines.append(new_line)
     return generated_lines
 
 def get_module_lib_in_folder(module, folder):
@@ -115,8 +120,12 @@ def generate_lines_plugin(project, module, func, params):
         term.error(traceback.format_exc())
         return None
 
-def process_macro(project, line, relpath, line_number):
-    result = [line]
+def process_macro(project, line, relpath, line_number, nested=False):
+    if not nested:
+        result = [line]
+    else:
+        result = []
+
     m = re.match(r'(\s*)__SILP__(.*)',
                  line.replace(project.language.macro_prefix, '__SILP__'))
     if m:
@@ -134,20 +143,22 @@ def process_macro(project, line, relpath, line_number):
                 matched_rule = project.get_rule(macro, params,
                                                 '%s:%s ' % (relpath, line_number))
                 if matched_rule:
-                    generated_lines = generate_lines_rule(matched_rule, params)
+                    generated_lines = generate_lines_rule(project, matched_rule, params)
 
         if generated_lines:
-            columns = project.language.columns + 1  # the extra 1 is for \n
-            for new_line in generated_lines:
-                columns = max(len(leading_space) + len(new_line) + 1 +
-                              len(project.language.generated_suffix),
-                              columns)
+            if not nested:
+                columns = project.language.columns + 1  # the extra 1 is for \n
+                for new_line in generated_lines:
+                    columns = max(len(leading_space) + len(new_line) + 1 +
+                                len(project.language.generated_suffix),
+                                columns)
 
             for new_line in generated_lines:
-                new_line = '%s%s' % (leading_space, new_line)
-                new_line = new_line.replace('\n', '')
-                while len(new_line) + len(project.language.generated_suffix) < columns:
-                    new_line = new_line + ' '
-                new_line = new_line + project.language.generated_suffix
+                if not nested:
+                    new_line = '%s%s' % (leading_space, new_line)
+                    new_line = new_line.replace('\n', '')
+                    while len(new_line) + len(project.language.generated_suffix) < columns:
+                        new_line = new_line + ' '
+                    new_line = new_line + project.language.generated_suffix
                 result.append(new_line)
     return result

@@ -1,3 +1,7 @@
+0.3.10
+------
+Support nested rules inside template.
+
 0.3.9
 -----
 Bugfix with term refactoring
