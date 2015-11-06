@@ -1,5 +1,6 @@
 import silp
 import os
+import term
 
 class Setting:
     def __init__(self, path, language, rules):
