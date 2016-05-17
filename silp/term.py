@@ -1,6 +1,7 @@
 import sys
+import traceback
 
-import lnkr
+PRINT_STACK_LIMIT = 10
 
 def fake_color(str):
     return str
@@ -45,6 +46,7 @@ def error(msg):
         print(msg)
     else:
         print(term.red + msg)
+    traceback.print_stack(limit=PRINT_STACK_LIMIT)
 
 def format_error(err):
     return term.red(err)
