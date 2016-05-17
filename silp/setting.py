@@ -1,5 +1,7 @@
-from . import silp
+from __future__ import absolute_import
+
 import os
+
 from . import term
 
 class Setting:

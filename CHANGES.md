@@ -1,3 +1,7 @@
+0.4.1
+-----
+Work with Python3
+
 0.3.11
 ------
 Bugfix with nested rules' param values

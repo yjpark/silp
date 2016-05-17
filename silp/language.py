@@ -1,7 +1,3 @@
-from . import silp
-from . import term
-
-
 class Language:
     def __init__(self, name, extension, macro_prefix,
                  generated_suffix, columns):

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import os
 import re
 import sys
@@ -5,8 +7,8 @@ import shutil
 import traceback
 import imp
 
-from . import silp
 from . import term
+from . import util
 from . import rule
 
 loaded_plugin_modules = {}
@@ -36,7 +38,7 @@ def process_file(project, path):
 
     term.info('Processing File: ' + term.format_path(path))
     relpath = os.path.relpath(path, project.path)
-    if silp.test_mode:
+    if util.test_mode:
         input_path = path
         output_path = get_temp_path(project.path, '.silp_test', relpath)
         prepare_dir(output_path)
@@ -59,7 +61,7 @@ def process(project, input_path, output_path, relpath):
         line_number = line_number + 1
         if project.language.generated_suffix in line:
             pass
-        elif not silp.clean_mode and project.language.macro_prefix in line:
+        elif not util.clean_mode and project.language.macro_prefix in line:
             output_lines.extend(process_macro(project, line, relpath, line_number))
         else:
             output_lines.append(line)
