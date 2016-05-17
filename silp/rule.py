@@ -1,7 +1,7 @@
 import re
 
-import silp
-import term
+from . import silp
+from . import term
 
 
 class MacroParam:
@@ -20,8 +20,7 @@ class Rule:
     def __str__(self):
         if self.params:
             return '%s(%s) [%s]' % (self.macro,
-                                    ', '.join(map(lambda x: x.name,
-                                                  self.params)),
+                                    ', '.join([x.name for x in self.params]),
                                     len(self.template))
         else:
             return '%s [%s]' % (self.macro, len(self.template))

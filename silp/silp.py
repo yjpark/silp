@@ -6,11 +6,11 @@ import plistlib
 import datetime
 import pytz
 
-import language
-from setting import Setting
-from rule import Rule
-import processor
-import term
+from . import language
+from .setting import Setting
+from .rule import Rule
+from . import processor
+from . import term
 
 test_mode = False
 clean_mode = False

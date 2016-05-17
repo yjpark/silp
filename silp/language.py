@@ -1,5 +1,5 @@
-import silp
-import term
+from . import silp
+from . import term
 
 
 class Language:

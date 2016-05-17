@@ -1,6 +1,6 @@
-import silp
+from . import silp
 import os
-import term
+from . import term
 
 class Setting:
     def __init__(self, path, language, rules):
@@ -23,7 +23,7 @@ class Setting:
         if not result:
             if params:
                 term.info(info_prefix + term.format_error('Macro Not Found: ')
-                          + term.format_param('%s(%s)' % (macro, ', '.join(map(lambda x: x.name, params)))))
+                          + term.format_param('%s(%s)' % (macro, ', '.join([x.name for x in params]))))
             else:
                 term.info(info_prefix +
                           term.format_error('Macro Not Found: ') +

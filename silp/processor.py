@@ -5,9 +5,9 @@ import shutil
 import traceback
 import imp
 
-import silp
-import term
-import rule
+from . import silp
+from . import term
+from . import rule
 
 loaded_plugin_modules = {}
 
