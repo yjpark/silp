@@ -6,3 +6,5 @@ __all__ = [
 
 from .silp import main
 from .language import languages
+from .term import info, error, verbose, format_path, format_error, format_param
+
