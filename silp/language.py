@@ -26,4 +26,5 @@ languages = [
     Language('Proj Items', '.projitems', '<!--SILP:', '<!--__SILP__-->\n', 80),
     Language('Shader', '.shader', '//SILP:', '//__SILP__\n', 80),
     Language('TypeScript', '.ts', '//SILP:', '//__SILP__\n', 80),
+    Language('Rust', '.rs', '//SILP:', '//__SILP__\n', 80),
 ]
