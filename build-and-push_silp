@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd `dirname $0`
+
+podman build -t yjpark/silp:latest -f Dockerfile
+
+podman push yjpark/silp:latest
